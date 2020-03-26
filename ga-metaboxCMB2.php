@@ -74,6 +74,100 @@ function campos_eventos(){
 } 
 add_action( 'cmb2_admin_init', 'campos_eventos' );
 
+
+function consulta_eventos_proximos($texto = '') {
+  $args = array(
+    'post_type' => 'eventos', // Tell WordPress which post type we want
+     'orderby' => 'meta_value', // We want to organize the events by date
+     'meta_key' => 'ga_campos_eventos_fecha', // Grab the "start date" field created via "More Fields" plugin (stored in YYYY-MM-DD format)
+     'order' => 'ASC', // ASC is the other option
+     'posts_per_page' => '-1', // Let's show them all.
+     'meta_query' => array( // WordPress has all the results, now, return only the events after today's date
+         array(
+             'key' => 'ga_campos_eventos_fecha', // Check the start date field
+             'value' => time(), // Set today's date (note the similar format)
+             'compare' => '>=', // Return the ones greater than today's date
+             'type' => 'NUMERIC,' // Let WordPress know we're working with numbers
+             )
+         ),
+   );
+	 echo "<h2 class='text-center'>" . $texto . "</h2>";
+   echo "<ul class='lista-eventos no-bullet'>";
+	 $eventos = new WP_Query($args); while($eventos->have_posts()): $eventos->the_post();
+
+	 echo '<li>';
+
+    echo the_title('<h3 class="text-center">', '</h3>');
+    echo "<p><b>Lugares disponibles: </b>" . get_post_meta( get_the_ID(), 'ga_campos_eventos_lugares', true ) . "</p>";
+    echo "<p><b>Ciudad: </b>" . get_post_meta( get_the_ID(), 'ga_campos_eventos_ciudad', true ) . "</p>";
+
+    $fechaEvento =  get_post_meta( get_the_ID(), 'ga_campos_eventos_fecha', true ); ?>
+    <p class="fecha-evento"><b>Fecha:</b> <?php echo gmdate("d-m-Y", $fechaEvento) ?> <b>Hora: </b><?php echo gmdate("H:i", $fechaEvento) ?></p>
+
+    <?php
+    echo "<h4>Temas que se verán</h4>";
+    $temas = get_post_meta( get_the_ID(), 'ga_campos_eventos_temas', true );
+
+    foreach($temas as $tema){
+    echo "<p>$tema</p>";
+    }
+    echo '</li>';
+
+	 endwhile; wp_reset_postdata();
+echo "</ul>";
+}
+
+add_shortcode( 'proximos-eventos', 'consulta_eventos_proximos' );
+
+
+function consulta_eventos_anteriores($texto = '') {
+  $args = array(
+    'post_type' => 'eventos', // Tell WordPress which post type we want
+     'orderby' => 'meta_value', // We want to organize the events by date
+     'meta_key' => 'ga_campos_eventos_fecha', // Grab the "start date" field created via "More Fields" plugin (stored in YYYY-MM-DD format)
+     'order' => 'ASC', // ASC is the other option
+     'posts_per_page' => '-1', // Let's show them all.
+     'meta_query' => array( // WordPress has all the results, now, return only the events after today's date
+         array(
+             'key' => 'ga_campos_eventos_fecha', // Check the start date field
+             'value' => time(), // Set today's date (note the similar format)
+             'compare' => '<=', // Return the ones greater than today's date
+             'type' => 'NUMERIC,' // Let WordPress know we're working with numbers
+             )
+         ),
+   );
+
+   echo "<h2 class='text-center'>" . $texto . "</pre></h2>";
+   echo "<ul class='lista-eventos no-bullet'>";
+      $eventos = new WP_Query($args); while($eventos->have_posts()): $eventos->the_post();
+
+      echo '<li>';
+
+      echo the_title('<h3 class="text-center">', '</h3>');
+      echo "<p><b>Lugares disponibles: </b>" . get_post_meta( get_the_ID(), 'ga_campos_eventos_lugares', true ) . "</p>";
+      echo "<p><b>Ciudad: </b>" . get_post_meta( get_the_ID(), 'ga_campos_eventos_ciudad', true ) . "</p>";
+      $fechaEvento =  get_post_meta( get_the_ID(), 'ga_campos_eventos_fecha', true ); ?>
+
+      <p class="fecha-evento"><b>Fecha:</b> <?php echo gmdate("d-m-Y", $fechaEvento) ?> <b>Hora: </b><?php echo gmdate("H:i", $fechaEvento) ?></p>
+
+      <?php
+      echo "<h4>Temas que se verán</h4>";
+
+     $temas = get_post_meta( get_the_ID(), 'ga_campos_eventos_temas', true );
+
+     foreach($temas as $tema){
+       echo "<p>$tema</p>";
+     }
+      echo '</li>';
+
+      endwhile; wp_reset_postdata();
+  echo "</ul>";
+}
+
+add_shortcode( 'anteriores-eventos', 'consulta_eventos_anteriores' );
+
+
+
 /**
  * Conditionally displays a metabox when used as a callback in the 'show_on_cb' cmb2_box parameter
  *
